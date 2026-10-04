@@ -1,25 +1,25 @@
 const products = {
   classic: {
     name: "Everyday Shea",
-    size: "100 g",
-    price: 25000,
+    size: "1000 g",
+    price: 50000,
     image: "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=240&q=70",
   },
   daily: {
     name: "Daily Ritual",
-    size: "200 g",
-    price: 40000,
+    size: "500 g",
+    price: 30000,
     image: "https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?auto=format&fit=crop&w=240&q=70",
   },
   mini: {
     name: "Little Pearl",
-    size: "50 g",
+    size: "250 g",
     price: 15000,
     image: "https://images.unsplash.com/photo-1611930022073-b7a4ba5fcccd?auto=format&fit=crop&w=240&q=70",
   },
 };
 
-const whatsappNumber = "256777502530";
+const whatsappNumber = "256706747281";
 const bag = new Map();
 const bagButton = document.querySelector(".bag-button");
 const bagCount = document.querySelector(".bag-count");
@@ -37,6 +37,12 @@ let lastFocusedElement;
 
 function formatPrice(amount) {
   return `UGX ${new Intl.NumberFormat("en-UG", { maximumFractionDigits: 0 }).format(amount)}`;
+}
+
+function addToBag(productId) {
+  bag.set(productId, (bag.get(productId) ?? 0) + 1);
+  updateBag();
+  openBag();
 }
 
 function updateBag() {
@@ -71,6 +77,10 @@ function updateBag() {
     const orderLines = [...bag.entries()].map(([id, quantity]) => `${quantity} x ${products[id].name} (${products[id].size})`).join("\n");
     const message = `Hello Pearl Shea Uganda, I would like to order:\n${orderLines}\nSubtotal: ${formatPrice(bagTotal)}\nPlease confirm delivery details.`;
     checkoutLink.href = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(message)}`;
+    checkoutLink.textContent = `Order on WhatsApp (${itemCount})`;
+  } else {
+    checkoutLink.href = `https://wa.me/${whatsappNumber}`;
+    checkoutLink.textContent = "Order on WhatsApp";
   }
 }
 
@@ -90,11 +100,17 @@ function closeBag() {
 }
 
 document.querySelectorAll("[data-add]").forEach((button) => {
-  button.addEventListener("click", () => {
-    const id = button.dataset.add;
-    bag.set(id, (bag.get(id) ?? 0) + 1);
-    updateBag();
-    openBag();
+  button.addEventListener("click", (event) => {
+    event.stopPropagation();
+    addToBag(button.dataset.add);
+  });
+});
+
+document.querySelectorAll(".product-card").forEach((card) => {
+  card.addEventListener("click", (event) => {
+    if (event.target.closest("button")) return;
+    const productId = card.dataset.product;
+    if (productId) addToBag(productId);
   });
 });
 
